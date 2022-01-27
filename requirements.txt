@@ -1,0 +1,4 @@
+torch 
+torchvision
+sigpy
+git+https://github.com/nmickevicius/torchkbnufft.git/@lowrank
