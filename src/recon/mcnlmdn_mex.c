@@ -1,5 +1,6 @@
 #include "mex.h"
 #include <math.h>
+#include <float.h>
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, mxArray const *prhs[])
 {
@@ -54,17 +55,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, mxArray const *prhs[])
             movi[i][j] = (double *)mxCalloc(NZ, sizeof(double));
         }
     }
-    
-    // allocate lambda for each point in search neighborhood
-    //double *lam = (double *)mxCalloc(nhood*nhood, sizeof(double));
-    //long numPatches = 0;
-    //long lp;
-    
+ 
     // create output array
     plhs[0] = mxCreateNumericArray(3, inpdims, mxDOUBLE_CLASS, mxCOMPLEX);
     imgdnr = mxGetPr(plhs[0]);
     imgdni = mxGetPi(plhs[0]);
-    
     
     // loop over rows
     for (r=0; r<NR; r++) {
@@ -79,7 +74,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, mxArray const *prhs[])
                         cidx = c - nw + pc;
                         for (pz=0; pz<NZ; pz++) {
                             idx = pz*NR*NC + cidx*NR + ridx;
-                            //idx = pz*NR*NC + (c-nw+pc)*NR + (r-nw+pr);
                             patchr[pr][pc][pz] = imgr[idx];
                             patchi[pr][pc][pz] = imgi[idx];
                         }
@@ -93,7 +87,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, mxArray const *prhs[])
                 }
                 
                 // reset the number of patches compared
-                //numPatches = 0;
                 for (hr=0; hr<nhood; hr++) {
                     for (hc=0; hc<nhood; hc++) {
                         dnr = -nhood/2 + hr;
@@ -121,8 +114,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, mxArray const *prhs[])
                             }
                             w = exp(-beta*w);
                             weights[hr][hc] = w;
-                            //lam[numPatches] = w;
-                            //numPatches++;
+
+                        }
+                        else {
+                            weights[hr][hc] = 0.0;
                         }
                     }
                 }
@@ -132,10 +127,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, mxArray const *prhs[])
                 wmax = 0.0;
                 for (hr=0; hr<nhood; hr++) {
                     for (hc=0; hc<nhood; hc++) { 
-                        if (weights[hr][hc] > wmax) {
-                            wmax = weights[hr][hc];
+                        if (!isnan(weights[hr][hc])) {
+                            if (weights[hr][hc] > wmax) {
+                                wmax = weights[hr][hc];
+                            }
+                            wsum += weights[hr][hc];
                         }
-                        wsum += weights[hr][hc];
                     }
                 }
                 wsum += wmax;
@@ -146,83 +143,31 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, mxArray const *prhs[])
                         dnr = -nhood/2 + hr;
                         dnc = -nhood/2 + hc;
                         if ((r+dnr-nw >= 0) && (r+dnr+nw < NR) && (c+dnc-nw >= 0) && (c+dnc+nw < NC)) {
-                            if ((dnr==0) && (dnc==0)) {
-                                w = wmax;
-                            }
-                            else {
-                                w = weights[hr][hc];
-                            }
-                            for (pz=0; pz<NZ; pz++) {
-                                idx = pz*NR*NC + c*NR + r;
-                                idxmov = pz*NR*NC + (c+dnc)*NR + r + dnr;
-                                imgdnr[idx] += imgr[idxmov]*w/wsum;
-                                imgdni[idx] += imgi[idxmov]*w/wsum;
-                            }
-                        }
-                    }
-                }
-                
-                /*
-                // get maximum value of lambda to be used for (r,c) patch weighting
-                // and calculate sum of all lambda values
-                wsum = 0.0;
-                wmax = 0.0;
-                for (lp=0; lp<numPatches; lp++) {
-                    if (lam[lp] > wmax) {
-                        wmax = lam[lp];
-                    }
-                    wsum += lam[lp];
-                }
-                wsum += wmax;
-                
-                for (hr=0; hr<nhood; hr++) {
-                    for (hc=0; hc<nhood; hc++) {
-                        dnr = -nhood/2 + hr;
-                        dnc = -nhood/2 + hc;
-                        
-                        if ((r+dnr-nw >= 0) && (r+dnr+nw < NR) && (c+dnc-nw >= 0) && (c+dnc+nw < NC)) {
-                            
-                            if ((dnr==0) && (dnc==0)) {
-                                w = wmax;
-                            }
-                            else {
-                                
-                                w = 0.0;
-                                for (pr=0; pr<winsize; pr++) {
-                                    ridx = r + dnr - nw + pr;
-                                    for (pc=0; pc<winsize; pc++) {
-                                        cidx = c + dnc - nw + pc;
-                                        for (pz=0; pz<NZ; pz++) {
-                                            idx = pz*NR*NC + cidx*NR + ridx;
-                                            movr[pr][pc][pz] = imgr[idx];
-                                            movi[pr][pc][pz] = imgi[idx];
-                                            
-                                            diffr = movr[pr][pc][pz] - patchr[pr][pc][pz];
-                                            diffi = movi[pr][pc][pz] - patchi[pr][pc][pz];
-                                            w += sqrt(diffr*diffr + diffi*diffi);
-                                        }
+                            if (!isnan(weights[hr][hc])) {
+                                if ((dnr==0) && (dnc==0)) {
+                                    w = wmax;
+                                }
+                                else {
+                                    w = weights[hr][hc];
+                                }
+                                for (pz=0; pz<NZ; pz++) {
+                                    idx = pz*NR*NC + c*NR + r;
+                                    idxmov = pz*NR*NC + (c+dnc)*NR + r + dnr;
+                                    if (wsum != 0.0) {
+                                        imgdnr[idx] += imgr[idxmov]*w/wsum;
+                                        imgdni[idx] += imgi[idxmov]*w/wsum;
                                     }
                                 }
-                                w = exp(-beta*w/winsq);
                             }
-                            
-                            for (pz=0; pz<NZ; pz++) {
-                                idx = pz*NR*NC + c*NR + r;
-                                idxmov = pz*NR*NC + (c+dnc)*NR + r + dnr;
-                                imgdnr[idx] += imgr[idxmov]*w/wsum;
-                                imgdni[idx] += imgi[idxmov]*w/wsum;
-                            }
-                            
                         }
                     }
                 }
-                */
-                
+
                 // free weights for each target pixel 
                 mxFree(weights);
                 
             }
-            
+
         } // c
     } // r
     

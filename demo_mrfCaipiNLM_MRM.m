@@ -60,7 +60,7 @@ outFile = sprintf('%s_RECON_%s.mat',kspFile(1:(end-4)), nowstr);
 %% Run the Reconstruction in Python
 
 ts = tic;
-comm = sprintf('python3 processMrfData.py %s %s %s %i %i %f %f %i %i %s', kspFile, trajFile, basisFile, numIterationsADMM, numIterationsCG, admmRho, llrLambda, llrWin, useGpuFlag, outFile);
+comm = sprintf('python3 src/recon/processMrfData.py %s %s %s %i %i %f %f %i %i %s', kspFile, trajFile, basisFile, numIterationsADMM, numIterationsCG, admmRho, llrLambda, llrWin, useGpuFlag, outFile);
 system(comm);
 tt = toc(ts);
 fprintf('Reconstruction time took %f seconds\n', tt);
@@ -74,6 +74,7 @@ beta = 32;
 win = 3;      % window size 
 nhood = 64;   % neighborhood search size
 
+clear recon_nlm;
 recon_nlm = zeros(size(recon));
 recon_lpf = zeros(size(recon));
 for slc = 1:size(recon,4)
