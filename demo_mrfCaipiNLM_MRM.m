@@ -1,3 +1,7 @@
+%% Set-Up
+
+addpath(genpath('src'));
+
 %% k-Space Data File 
 
 % acceleration factor (must be 1 or 2)
