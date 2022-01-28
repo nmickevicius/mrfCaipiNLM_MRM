@@ -25,9 +25,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, mxArray const *prhs[])
     int nw = (winsize-1)/2;
     double winsq, w, wsum, diffr, diffi, wmax;
     
+    // ensure input array is complex 
+    if (!mxIsComplex(prhs[0])) {
+        mexErrMsgIdAndTxt( "MATLAB:mcnlmdn_mex:inputsNotComplex", "Inputs must be complex.\n");
+    }
+    
     // read the input
-    imgr = mxGetPr(prhs[0]);
-    imgi = mxGetPi(prhs[0]);
+    imgr = mxGetPr(prhs[0]); // real part of [NR, NC, NZ] image
+    imgi = mxGetPi(prhs[0]); // imaginary part of [NR, NC, NZ] image
     winsize = (int)(mxGetScalar(prhs[1]));
     nhood = (int)(mxGetScalar(prhs[2]));
     beta = mxGetScalar(prhs[3]);

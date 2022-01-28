@@ -5,7 +5,7 @@ addpath(genpath('src'));
 %% k-Space Data File 
 
 % acceleration factor (must be 1 or 2)
-R = 2; 
+R = 1; 
 
 if R == 1
     kspFile = fullfile('data','data_nist_ismrm_phantom_slc23_R1.mat');
@@ -79,7 +79,7 @@ recon_nlm = zeros(size(recon));
 recon_lpf = zeros(size(recon));
 for slc = 1:size(recon,4)
     img = double(recon(:,:,:,slc)./scl);
-    recon_nlm(:,:,:,slc) = mcnlmdn_mex(img, win, nhood, beta); 
+    recon_nlm(:,:,:,slc) = mcnlmdn(img, win, nhood, beta); 
     for k = 1:size(img,3)
         recon_lpf(:,:,k,slc) = conv2(img(:,:,k),ones(2,2)./4,'same'); % low-pass filter for comparison
     end
