@@ -1,8 +1,8 @@
 # Through-Plane Accelerated MRF Reconstruction
 
-This repository contains the source code referenced in the following work submitted to Magnetic Resonance in Medicine. Please cite this work if you find this code useful in your application. The code that implements the solution to Equation 1 is contained in the 'processMrfData' python script. 
+This repository contains the source code referenced in the following work accepted for publication in Magnetic Resonance in Medicine. Please cite this work if you find this code useful in your application. The code that implements the solution to Equation 1 is contained in the 'processMrfData' python script. 
 
-Nikolai J. Mickevicius and Carri K. Glide-Hurst. Low-rank inversion reconstruction for through-plane accelerated radial MR fingerprinting applied to relaxometry at 0.35T.
+Nikolai J. Mickevicius and Carri K. Glide-Hurst. Low-rank inversion reconstruction for through-plane accelerated radial MR fingerprinting applied to relaxometry at 0.35T. Magnetic Resonance in Medicine (2022).
 
 ## Installation
 
